@@ -4,8 +4,8 @@
 
 #include "../headers/Map.h"
 const int BEGIN = 0;
-const int WIDTH = 18;
-const int LENGTH = 40;
+const int WIDTH = 18; //altezza del scenario
+const int LENGTH = 40; //lunghezza del scenario
 
 #include "../headers/Locate.h"
 #include "../headers/Map.h"
