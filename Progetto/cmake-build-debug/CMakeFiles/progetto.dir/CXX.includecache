@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+C:/Users/jincl/CLionProjects/Progetto/headers/mappa.h
+
+C:/Users/jincl/CLionProjects/Progetto/headers/personaggio.h
+
+C:/Users/jincl/CLionProjects/Progetto/main.cpp
+iostream
+-
+headers/personaggio.h
+C:/Users/jincl/CLionProjects/Progetto/headers/personaggio.h
+headers/mappa.h
+C:/Users/jincl/CLionProjects/Progetto/headers/mappa.h
+
