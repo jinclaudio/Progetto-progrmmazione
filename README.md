@@ -1,2 +1,2 @@
 # Progetto-progrmmazione
-Lorenzo, Limiao, Claudio， Jinxiufu
+Lorenzo, Limiao, Claudio, Jinxiufu
