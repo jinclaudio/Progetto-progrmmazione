@@ -241,7 +241,7 @@ void drawMap(WINDOW *local_win){
 	wrefresh(local_win);
 }
 
-void controll(player &p1,WINDOW *local_win,int ch){
+void controll(player &p1,WINDOW *local_win,int &ch){
 	bool haveMoved = false;
 	//如果玩家死亡，则不能操作
 	if (p1.getactive() == true){
@@ -249,18 +249,24 @@ void controll(player &p1,WINDOW *local_win,int ch){
 		//控制跳跃
 		switch(ch){
 			case KEY_UP:
+			case 'w':
+			case 'W':{
 				if (p1.getgrounded() == true)
-				p1.updateVelocityY(15.0f);
+				p1.updateVelocityY(15.0f);}
 			break;
 
 			case KEY_RIGHT:
+			case 'd':
+			case 'D':{
 				p1.updateVelocityX(5.0f);
-				haveMoved = true;
+				haveMoved = true;}
 			break;
 
 			case KEY_LEFT:
+			case 'a':
+			case 'A':{
 				p1.updateVelocityX(-5.0f);
-				haveMoved = true;
+				haveMoved = true;}
 			break;
 		}
 		//若没有移动，则速度停顿下来
@@ -357,7 +363,7 @@ void updatePhysicsP(WINDOW *local_win, float dt,player &p1) {
 					//旧位置 + 时间×速度 = 新位置
 			float x1f = fmin(fmax(p1.getpositionx() + dt * p1.getvelocityx(), 0.0f), width - 1); // fmin( fmax(0+1*0,0),49 )=0
 			float y1f = fmin(fmax(p1.getpositiony() + dt * p1.getvelocityy(), 1.0f), height - 1); // fmin( fmax(15+1*0,0),49 ) = 15
-			int x1 = x1f + 0.5f; 
+			int x1 = x1f + 0.5f;
 			int y1 = y1f + 0.5f;
 			
 			//判断障碍碰撞
@@ -450,7 +456,7 @@ void updatePhysicsM(WINDOW *local_win,livello lv, float dt, int i) {
 void Physics(WINDOW *local_win, float dt, int stepNum,livello lv, player &p1){
 	//Vec2 newposP, newposM,newposS,newposL;
 	dt /= stepNum;
-	for (int i = 0; i < stepNum; i++){
+	for (int i = 0; i < 10; i++){
 		
 		updatePhysicsP(local_win,dt,p1);
 
@@ -535,7 +541,7 @@ int main(){
 	while (ch != 'q'){
 		//mvwaddch(view,height/2,width/2,'A');
 
-		/*DWORD nowTime = GetTickCount();      //获得当前帧的时间点
+		DWORD nowTime = GetTickCount();      //获得当前帧的时间点
 		DWORD deltaTime = nowTime - lastTime;  //计算这一帧与上一帧的时间差
 		lastTime = nowTime;                   //更新上一帧的时间点*/
 
@@ -544,7 +550,7 @@ int main(){
 		
 		controll(p1,stdscr,ch);
 		switchlv(Correntlv,p1,highest_lv,stdscr);  // check if need to switch the lv
-		//updateScreen(stdscr,Correntlv,p1,deltaTime);	//show up the entities and player 
+		updateScreen(stdscr,Correntlv,p1,deltaTime);	//show up the entities and player 
 		//if (flagNewlv == TRUE) Correntlv= newlv(Correntlv,num_lv);
 		//Correntlv=switchlv();
 	
