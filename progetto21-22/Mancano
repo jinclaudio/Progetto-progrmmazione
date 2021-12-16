@@ -1,0 +1,6 @@
+mancano:
+- come individuare quando le cose che si scontrano e.g. bullet & monster, player & monster, player & artefatti;
+- diversi tipi di mappe che si alternano tra un livello e altro;
+- il disegno delle porte e individuarli quali sono quello di entrata e quel e' quella di uscita, e l artefatto che manopola la chiusura;
+- scoretable, mostrare il punteggio di tipo int (ma non esiste un output che stampa int ???????);
+- vari tipi di bonus, nemici, artefatti ecc.. guardare bene la pp del progetto 21/22.
