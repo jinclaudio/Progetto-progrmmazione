@@ -129,30 +129,14 @@ class player : public Entity{
 	int getscore(){
 		return score;
 	}
-	void updatescore(){
-
+	void scored(){
+		score = this->gestscore()+10;
 	}
-	void updatedamage(bool newdamage){
-		damage=newdamage;
-	}	
-	void getdamage(){
-		if (damage == true){
-			this->life--;
-			damage=false;
-		}
+	void damaged(){
+		if (this->life>0) life--;
+		else this->Death();
 	}
-	void updatescore(bool newscore){
-		scored = newscore;
-	}
-	void zeroscore(){
-		this->score=0;
-	}
-	void scoreUp(){
-		if (scored==true){
-			this->score+=1;
-			scored=false;
-		}
-	}
+	
 	void updatelife(bool newlife){
 		healed = newlife;
 	}
@@ -162,16 +146,19 @@ class player : public Entity{
 			healed=false;
 		}
 	}
-
+	bool bulletFlag(){
+		return bull.flag;
+	}
+	void updateFlag(bool flag){
+		bull.flag=flag;
+	}
 	char shapebullet(){
 		return bull.shape;
 	}
 	bool getbullet(){
 		return bull.flag;
 	}
-	void flagbullet(bool flag){
-		bull.flag=flag;
-	}
+	
 	void updatebullet(float x,float y){
 		bull.x=x;
 		bull.y=y;
@@ -186,6 +173,7 @@ class player : public Entity{
 
 struct Level{
 	int num;
+	int mapnum;
 	int buff;
 
 	Entity *enemies[100]; //={{Entity('m','s')}};
@@ -233,6 +221,7 @@ livello newlv(livello lv, int &newlev){
 	if (lv != NULL) lv->next = tmp;
 
 	newlev++;
+	int randmap = rand() % (width-2) + 2
 
 	return tmp;
 }
@@ -318,8 +307,8 @@ void updatePlayer(WINDOW *local_win,player &p1,){
 			mvwaddch(local_win,p1.bulletY(),p1.bulletX()-1,' '); // clear the old position of bullet
 			mvwaddch(local_win,p1.bulletY(),p1.bulletX(),p1.shapebullet()); // show up the bullet
 			
-			if (!p1.is_move_okay(local_win,p1.bulletX()+1,p1.bulletY()) || p1.bulletX()>=width) {
-				p1.flagbullet(false);
+			if ((!p1.is_move_okay(local_win,p1.bulletX()+1,p1.bulletY()) || p1.bulletX()>=width) && p1.bulletFlag()) {
+				p1.updateFlag(false);
 				mvwaddch(local_win,p1.bulletY(),p1.bulletX(),' ');
 			}
 			p1.updatebullet(p1.bulletX()+1,p1.bulletY());
@@ -372,10 +361,23 @@ void updateMonster(WINDOW *local_win, Entity &monster,float dt){
 
 	mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),monster.gettext());
 }
+
 void hitbox(livello lv, player &p1){
 	for (int i = 0; i <num; i++){
-	   if((p1.bulletX()+1 == lv->enemies[i]->getpositionx())) && (p1.bullety() == lv->enemies[i]->getpositiony()))
-		   
+		//bullet && monster
+
+			//if((p1.bulletX()+1 == lv->enemies[i]->getnewpositionx())) && (p1.bullety() == lv->enemies[i]->getnewpositiony()){
+		   	if((p1.bulletX() == lv->enemies[i]->getpositionx())) && (p1.bullety() == lv->enemies[i]->getpositiony()){
+			   p1.updateFlag(false);
+			   lv->enemies[i]->Death();
+			   p1.scored();
+		   }
+	   // player && monsterss
+		   if((p1.getpositionx() == lv->enemies[i]->getpositionx())) && (p1.getpositiony() == lv->enemies[i]->getpositiony()){
+
+			   lv->enemies[i]->Death();
+			   p1.damaged();
+		   }
 	}
 }
 void updateScreen(WINDOW *local_win,livello lv, player &p1,float dt){
