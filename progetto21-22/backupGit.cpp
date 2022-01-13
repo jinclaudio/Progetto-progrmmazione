@@ -240,7 +240,7 @@ livello switchlv(livello Correntlv, player &p1, int &highest_lv, WINDOW *local_w
 	
 	if (p1.getnewpositionx() >= width){
 		if (Correntlv->next == NULL) {
-			Correntlv=newlv(Correntlv,highest_lv,&t); // if there isn't a next lv, create it
+			Correntlv=newlv(Correntlv,highest_lv); // if there isn't a next lv, create it
 		}
 		else {
 			Correntlv = Correntlv->next;	  //Correntlv is changed in nextLv
@@ -372,7 +372,12 @@ void updateMonster(WINDOW *local_win, Entity &monster,float dt){
 
 	mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),monster.gettext());
 }
-
+void hitbox(livello lv, player &p1){
+	for (int i = 0; i <num; i++){
+	   if((p1.bulletX()+1 == lv->enemies[i]->getpositionx())) && (p1.bullety() == lv->enemies[i]->getpositiony()))
+		   
+	}
+}
 void updateScreen(WINDOW *local_win,livello lv, player &p1,float dt){
 	dt/=1000.0f;
 	updatePlayer(local_win,p1);
