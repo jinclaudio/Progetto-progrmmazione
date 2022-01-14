@@ -32,7 +32,7 @@ class Entity {
 	Entity(char tipo, char text){
 		this->position.x = rand() % (width-2) + 2;
 		this->position.y = rand() % (height-3) + 2;
-		this->newposition = {5,5};
+		this->newposition = {0,0};
 		this->texture = text;
 		this->active = true;
 		this->type = tipo;
@@ -77,6 +77,7 @@ class Entity {
 	}
 	void Death() { 
 		this->updateactive(false);
+		texture=' ';
 	}
 
 	bool is_move_okay(WINDOW *local_win,float x, float y){
@@ -90,9 +91,6 @@ class player : public Entity{
 	protected:
 	int life;
 	int score;
-	bool damage;
-	bool scored;
-	bool healed;
 	float startX;
 	float endX;
 	float flagY;
@@ -103,9 +101,6 @@ class player : public Entity{
 		this->position.y = height-2; // 数字越低， 显示的地方越低
 		this->life=3;
 		this->score=0;
-		this->damage = false;
-		this->scored = false;
-		this->healed = false;
 		this->startX = 1;
 		this->endX = width-2;
 		this->flagY = height-2;
@@ -129,15 +124,17 @@ class player : public Entity{
 	int getscore(){
 		return score;
 	}
+
 	void scored(){
-		score = this->gestscore()+10;
+		score +=10;
 	}
+
 	void damaged(){
 		if (this->life>0) life--;
 		else this->Death();
 	}
 	
-	void updatelife(bool newlife){
+	/*void updatelife(bool newlife){
 		healed = newlife;
 	}
 	void lifeUp(){
@@ -145,7 +142,7 @@ class player : public Entity{
 			this->life++;
 			healed=false;
 		}
-	}
+	}*/
 	bool bulletFlag(){
 		return bull.flag;
 	}
@@ -171,9 +168,9 @@ class player : public Entity{
 	}
 };
 
+
 struct Level{
 	int num;
-	int mapnum;
 	int buff;
 
 	Entity *enemies[100]; //={{Entity('m','s')}};
@@ -184,15 +181,22 @@ struct Level{
 };
 
 typedef Level* livello;
-void drawMap(WINDOW *local_win){
+void drawMap(WINDOW *local_win,WINDOW *scoretable){
+
+	box(scoretable, '|', '*');
 	wborder(local_win,'|','|','-','-','-','-','-','-');
-	wrefresh(local_win);
 	mvwvline(local_win,8,width-1,' ',1);
 	mvwvline(local_win,8,0,' ',1);
 }
-void clearMonster(livello lv,WINDOW *local_win){
-	for (int i = 0;i < lv->num;i++)
-		mvwaddch(local_win,lv->enemies[i]->getpositiony(),lv->enemies[i]->getpositionx(),' ');
+void updateScoretable(WINDOW *local_win, player &p1){
+
+	mvwprintw(local_win,1,3,"Life: %d", p1.getlife());
+	mvwprintw(local_win,2,3,"Score: %d",p1.getscore());
+	wrefresh(local_win);
+
+}
+void clearMonster(WINDOW *local_win, Entity &monster){
+		mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),' ');
 }
 
 livello newlv(livello lv, int &newlev){
@@ -221,7 +225,6 @@ livello newlv(livello lv, int &newlev){
 	if (lv != NULL) lv->next = tmp;
 
 	newlev++;
-	int randmap = rand() % (width-2) + 2
 
 	return tmp;
 }
@@ -229,20 +232,25 @@ livello switchlv(livello Correntlv, player &p1, int &highest_lv, WINDOW *local_w
 	
 	if (p1.getnewpositionx() >= width){
 		if (Correntlv->next == NULL) {
-			Correntlv=newlv(Correntlv,highest_lv); // if there isn't a next lv, create it
-		}
-		else {
-			Correntlv = Correntlv->next;	  //Correntlv is changed in nextLv
-		}
-		if(Correntlv->prev!=NULL) clearMonster(Correntlv->prev,local_win);
+				Correntlv=newlv(Correntlv,highest_lv); // if there isn't a next lv, create it
+			}
+			else {
+				Correntlv = Correntlv->next;	  //Correntlv is changed in nextLv
+			}
+		if(Correntlv->prev!=NULL) {
+			for (int i = 0;i < Correntlv->prev->num;i++)
+			clearMonster(local_win,*(Correntlv->prev->enemies[i]));}
+
 		p1.updatenewposition(p1.getstartX(),p1.getflagY());
 	}
 	else if (p1.getnewpositionx() <= 0){
 		if (Correntlv->num != 1 ){
 			mvwaddch(local_win,height/2,width/2+2,'B');
 			Correntlv = Correntlv->prev;	// Correntlv is changed in prevLv
-			if(Correntlv->next!=NULL)
-				clearMonster(Correntlv->next,local_win);
+			if(Correntlv->next!=NULL){
+				for (int i = 0;i < Correntlv->next->num;i++)
+				clearMonster(local_win,*(Correntlv->next->enemies[i]));}
+
 			p1.updatenewposition(p1.getendX(),p1.getflagY());	
 		};
 	};
@@ -285,7 +293,7 @@ void controll(player &p1,WINDOW *local_win,int &ch){
 	case 'J':{
 		if (!p1.getbullet()){
 		
-		p1.flagbullet(true);
+		p1.updateFlag(true);
 		p1.updatebullet(p1.getpositionx()+1,p1.getpositiony());}
 	break;}
 	}
@@ -294,12 +302,13 @@ void controll(player &p1,WINDOW *local_win,int &ch){
 
 }
 
-void updatePlayer(WINDOW *local_win,player &p1,){
+void updatePlayer(WINDOW *local_win,player &p1){
 	//player part
 		if (p1.getactive()){
 			//check if the new position is valided.
-			if (p1.is_move_okay(local_win,p1.getnewpositionx(),p1.getnewpositiony())==true) // if the new position is not barrier,then update new position;
+			if (p1.is_move_okay(local_win,p1.getnewpositionx(),p1.getnewpositiony())) // if the new position is not barrier,then update new position;
 				p1.updateposition(p1.getnewpositionx(),p1.getnewpositiony());
+
 		mvwaddch(local_win,p1.getpositiony(),p1.getpositionx(),p1.gettext());
 	
 	// bullet part
@@ -324,56 +333,70 @@ void UpdateMonsterPosition(WINDOW *local_win, Entity &monster,float dt){
 
 	if (timeCounter >= 10.0f){
 		timeCounter = 0.0f;
-	int direction = rand() % 4 +1;
-	switch(direction){
-			case 1:
-				 monster.updatenewposition(monster.getpositionx(),monster.getpositiony()-1);
-			break;
-			case 2:
-			
-				 monster.updatenewposition(monster.getpositionx(),monster.getpositiony()+1);
-			break;
-			case 3:
-			
-				 monster.updatenewposition(monster.getpositionx()-1,monster.getpositiony());
-			break;
-			case 4:
-			
-				 monster.updatenewposition(monster.getpositionx()+1,monster.getpositiony());
-			break;	
-		}
-		mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),' ');
+		int direction = rand() % 4 +1;
+
+		switch(direction){
+				case 1:
+					 monster.updatenewposition(monster.getpositionx(),monster.getpositiony()-1);
+				break;
+				case 2:
+				
+					 monster.updatenewposition(monster.getpositionx(),monster.getpositiony()+1);
+				break;
+				case 3:
+				
+					 monster.updatenewposition(monster.getpositionx()-1,monster.getpositiony());
+				break;
+				case 4:
+				
+					 monster.updatenewposition(monster.getpositionx()+1,monster.getpositiony());
+				break;	
+			}
+			mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),' ');
 	}
 }
 
 void updateMonster(WINDOW *local_win, Entity &monster,float dt){
 
-	while(monster.is_move_okay(local_win,monster.getpositionx(),monster.getpositiony())){
+	/*while(monster.is_move_okay(local_win,monster.getpositionx(),monster.getpositiony())){
 		float y1=rand() % (height-3) + 2;
 		float x1=rand() % (width-2) + 2;
 		monster.updateposition(x1,y1);
-	};
+	};*/
 
-	UpdateMonsterPosition(local_win,monster,dt);
+	if(monster.getactive()){
 
-	if (monster.is_move_okay(local_win,monster.getnewpositionx(),monster.getnewpositiony()))
-		monster.updateposition(monster.getnewpositionx(),monster.getnewpositiony());
+		UpdateMonsterPosition(local_win,monster,dt);
 
-	mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),monster.gettext());
+		if (monster.is_move_okay(local_win,monster.getnewpositionx(),monster.getnewpositiony()))
+			monster.updateposition(monster.getnewpositionx(),monster.getnewpositiony());
+
+		mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),monster.gettext());
+	}
+
 }
-
-void hitbox(livello lv, player &p1){
-	for (int i = 0; i <num; i++){
+void Hitbox(WINDOW *local_win,livello lv, player &p1){
+	for (int i = 0; i <lv->num; i++){
 		//bullet && monster
 
-			//if((p1.bulletX()+1 == lv->enemies[i]->getnewpositionx())) && (p1.bullety() == lv->enemies[i]->getnewpositiony()){
-		   	if((p1.bulletX() == lv->enemies[i]->getpositionx())) && (p1.bullety() == lv->enemies[i]->getpositiony()){
-			   p1.updateFlag(false);
-			   lv->enemies[i]->Death();
-			   p1.scored();
+			//if(((p1.bulletX()+1 == lv->enemies[i]->getnewpositionx())) && (p1.bulletY() == lv->enemies[i]->getnewpositiony())&& p1.bulletFlag()){
+		   	if (
+		   		(p1.bulletX() == lv->enemies[i]->getpositionx()) && 
+		   		(p1.bulletY() == lv->enemies[i]->getpositiony()) &&
+		   		(p1.bulletFlag()) &&
+		   		(lv->enemies[i]->getactive())
+		   		) {
+			    
+			    p1.updateFlag(false);
+				mvwaddch(local_win,p1.bulletY(),p1.bulletX()-1,' ');
+
+			    lv->enemies[i]->Death();
+
+			    clearMonster(local_win,*(lv->enemies[i]));
+			    p1.scored();
 		   }
 	   // player && monsterss
-		   if((p1.getpositionx() == lv->enemies[i]->getpositionx())) && (p1.getpositiony() == lv->enemies[i]->getpositiony()){
+		   if (((p1.getpositionx() == lv->enemies[i]->getpositionx())) && (p1.getpositiony() == lv->enemies[i]->getpositiony())&&lv->enemies[i]->getactive()){
 
 			   lv->enemies[i]->Death();
 			   p1.damaged();
@@ -385,11 +408,10 @@ void updateScreen(WINDOW *local_win,livello lv, player &p1,float dt){
 	updatePlayer(local_win,p1);
 	for (int i = 0; i<lv->num;i++) updateMonster(local_win,*(lv->enemies[i]),dt);
 	// varie for per aggiornare varie cose.
-	
-	Hitbox();	
 
+	Hitbox(local_win,lv,p1);
 	napms(20);
-	wrefresh(local_win);
+
 }
 
 int main(){
@@ -407,18 +429,18 @@ int main(){
 	int highest_lv = 1;
 	
 
-	Correntlv=newlv(Correntlv,highest_lv,&t);
+	Correntlv=newlv(Correntlv,highest_lv);
 
 	initscr();
 	noecho();
 	cbreak();
 
 	view=newwin(height,width,0,0);
-	scoretable=newwin(height,width/2,0,width+11);
+	scoretable=newwin(4,15,0,width+1);
 
 	keypad(view,TRUE);
 	
-	drawMap(view);
+	drawMap(view,scoretable);
 	//drawMap2(scoretable);
 	while (ch != 'q'){
 		NowTime=clock();
@@ -427,10 +449,18 @@ int main(){
 
 		if (nodelay(view,TRUE)!= ERR)
 			ch = wgetch(view);
+
 		controll(p1,view,ch);
+
 		Correntlv=switchlv(Correntlv,p1,highest_lv,view);
+
 		if (Correntlv->next != NULL) mvwaddch(view,height/2,width/2+4,'d');
+
 		updateScreen(view,Correntlv,p1,deltaTime);
+		updateScoretable(scoretable,p1);
+
+		wrefresh(view);
+		
 	}
 	endwin();
 	return (0);
