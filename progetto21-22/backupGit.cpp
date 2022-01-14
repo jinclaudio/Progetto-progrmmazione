@@ -7,7 +7,7 @@
 using namespace std;
 
 #define width 50
-#define height 10
+#define height 13
 
 struct Vec2 {
 	float x;
@@ -178,25 +178,101 @@ struct Level{
 	//Entity life[width];
 	Level *next;
 	Level *prev;
+	int id_map;
 };
 
 typedef Level* livello;
-void drawMap(WINDOW *local_win,WINDOW *scoretable){
+
+void rectangle(WINDOW *local_win, int x, int y, int long1, int long2){
+	mvwhline(local_win, y, x, '-', long1+1);
+	mvwhline(local_win, y+long2-1, x, '-', long1+1);
+	mvwvline(local_win, y, x, '|', long2);
+	mvwvline(local_win, y, x+long1+1, '|', long2);	
+}
+
+void drawScene(WINDOW *local_win,int id){
+	switch(id){
+		case 1:{
+				mvwhline(local_win,  6,  1,  '-', 46);
+			for (int i = 7;i < 45; i = i+8)
+				mvwvline(local_win, 3, i, '|', 3);
+
+			for (int i = 3; i < 45; i = i+8)
+				mvwvline(local_win, 7, i, '|', 3);
+
+			for (int i = 3; i < 50; i = i+8)
+				mvwvline(local_win, 1, i, '|', 3);
+
+			for (int i = 7; i < 45; i = i+8)
+				mvwvline(local_win, 9, i, '|', 3);
+
+			mvwvline(local_win, 4, 0, ' ', 2);
+			mvwvline(local_win, 8, 0, 'X', 2);
+		}
+		break;
+		case 2:{
+			mvwhline(local_win,  6,  1,  '-', 48);
+			for (int i = 10; i < 50; i = i+10)
+				mvwvline(local_win, 1, i, '|', 11);
+			mvwvline(local_win,  8,  0,  ' ', 2);
+			mvwhline(local_win,  12,  45,  'X', 2);
+		}
+		break;
+		case 3:{
+			mvwhline(local_win,  4,  1,  '-', 8);
+			mvwhline(local_win,  8,  39,  '-', 8);
+			mvwvline(local_win, 5, 4, '|', 3);
+			mvwvline(local_win, 1, 19, '|', 7);
+			mvwvline(local_win, 9, 24, '|', 3);
+			mvwhline(local_win,  5,  20,  '-', 10);
+			mvwvline(local_win, 1, 38, '|', 9);
+			mvwvline(local_win, 9, 0, ' ', 2);
+			mvwvline(local_win, 1, 49, 'X', 2);
+		}
+
+		break;
+		case 4:{
+			 rectangle(local_win, 3, 3, 42, 7);
+			 mvwhline(local_win, 6, 6, '-', 38);
+			 mvwhline(local_win, 12, 5, ' ', 2);
+			 mvwhline(local_win, 12, 46, 'X', 2);
+		}
+		break;
+		case 0:{
+			mvwhline(local_win,5,20,'-',5);
+			//id default 0 for test, when is done, change the id in newlv().
+		}
+		break;
+		case 100:{
+			mvwvline(local_win,5,20,'|',5);
+			//id default 0 for test, when is done, change the id in newlv().
+		}
+		break;
+	}
+}
+
+void drawMap(WINDOW *scene,WINDOW *scoretable){
 
 	box(scoretable, '|', '*');
-	wborder(local_win,'|','|','-','-','-','-','-','-');
-	mvwvline(local_win,8,width-1,' ',1);
-	mvwvline(local_win,8,0,' ',1);
+	wborder(scene,'|','|','-','-','-','-','-','-');
+	mvwvline(scene,8,width-1,' ',1);
+	mvwvline(scene,8,0,' ',1);
 }
-void updateScoretable(WINDOW *local_win, player &p1){
+
+void updateScoretable(WINDOW *local_win, player &p1,int id){
 
 	mvwprintw(local_win,1,3,"Life: %d", p1.getlife());
 	mvwprintw(local_win,2,3,"Score: %d",p1.getscore());
+	mvwprintw(local_win,3,3,"id_map: %d",id);
 	wrefresh(local_win);
 
 }
 void clearMonster(WINDOW *local_win, Entity &monster){
-		mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),' ');
+	mvwaddch(local_win,monster.getpositiony(),monster.getpositionx(),' ');
+}
+void clearScene(WINDOW *scene){
+	for(int y = 1;y<height-1;y++)
+		mvwhline(scene,y,1,' ',width-2);
 }
 
 livello newlv(livello lv, int &newlev){
@@ -224,36 +300,38 @@ livello newlv(livello lv, int &newlev){
 
 	if (lv != NULL) lv->next = tmp;
 
+	//tmp->id_map = rand() % 4 +1;
+	if (newlev%2 == 0)
+		tmp->id_map=0;
+	else tmp->id_map=100;
+
 	newlev++;
 
 	return tmp;
 }
+
 livello switchlv(livello Correntlv, player &p1, int &highest_lv, WINDOW *local_win){
 	
 	if (p1.getnewpositionx() >= width){
 		if (Correntlv->next == NULL) {
 				Correntlv=newlv(Correntlv,highest_lv); // if there isn't a next lv, create it
 			}
-			else {
-				Correntlv = Correntlv->next;	  //Correntlv is changed in nextLv
-			}
-		if(Correntlv->prev!=NULL) {
-			for (int i = 0;i < Correntlv->prev->num;i++)
-			clearMonster(local_win,*(Correntlv->prev->enemies[i]));}
-
+			else
+			{Correntlv = Correntlv->next;	  //Correntlv is changed in nextLv
+		}
 		p1.updatenewposition(p1.getstartX(),p1.getflagY());
 	}
 	else if (p1.getnewpositionx() <= 0){
 		if (Correntlv->num != 1 ){
 			mvwaddch(local_win,height/2,width/2+2,'B');
 			Correntlv = Correntlv->prev;	// Correntlv is changed in prevLv
-			if(Correntlv->next!=NULL){
-				for (int i = 0;i < Correntlv->next->num;i++)
-				clearMonster(local_win,*(Correntlv->next->enemies[i]));}
+				
+			
 
 			p1.updatenewposition(p1.getendX(),p1.getflagY());	
 		};
 	};
+	clearScene(local_win);
 	return Correntlv;
 }
 
@@ -299,7 +377,6 @@ void controll(player &p1,WINDOW *local_win,int &ch){
 	}
 	mvwaddch(local_win,p1.getpositiony(),p1.getpositionx(),' ');
 	}
-
 }
 
 void updatePlayer(WINDOW *local_win,player &p1){
@@ -357,12 +434,13 @@ void UpdateMonsterPosition(WINDOW *local_win, Entity &monster,float dt){
 }
 
 void updateMonster(WINDOW *local_win, Entity &monster,float dt){
-
-	/*while(monster.is_move_okay(local_win,monster.getpositionx(),monster.getpositiony())){
-		float y1=rand() % (height-3) + 2;
-		float x1=rand() % (width-2) + 2;
-		monster.updateposition(x1,y1);
-	};*/
+	if (!monster.is_move_okay(local_win,monster.getpositionx(),monster.getpositiony())){
+		while(monster.is_move_okay(local_win,monster.getpositionx(),monster.getpositiony())){
+			float y1=rand() % (height-3) + 2;
+			float x1=rand() % (width-2) + 2;
+			monster.updateposition(x1,y1);
+		};
+	};
 
 	if(monster.getactive()){
 
@@ -375,6 +453,7 @@ void updateMonster(WINDOW *local_win, Entity &monster,float dt){
 	}
 
 }
+
 void Hitbox(WINDOW *local_win,livello lv, player &p1){
 	for (int i = 0; i <lv->num; i++){
 		//bullet && monster
@@ -403,15 +482,17 @@ void Hitbox(WINDOW *local_win,livello lv, player &p1){
 		   }
 	}
 }
+
 void updateScreen(WINDOW *local_win,livello lv, player &p1,float dt){
 	dt/=1000.0f;
+	drawScene(local_win,lv->id_map);
+	
 	updatePlayer(local_win,p1);
 	for (int i = 0; i<lv->num;i++) updateMonster(local_win,*(lv->enemies[i]),dt);
 	// varie for per aggiornare varie cose.
 
 	Hitbox(local_win,lv,p1);
 	napms(20);
-
 }
 
 int main(){
@@ -419,8 +500,8 @@ int main(){
 	LastTime = clock();
 	srand(time(0));
 	int ch;
-	WINDOW *view;
-	WINDOW *scoretable;
+	WINDOW *view,*scoretable;
+	
 	player p1=player('p','P');
 
 	livello Correntlv = NULL;
@@ -434,9 +515,9 @@ int main(){
 	initscr();
 	noecho();
 	cbreak();
-
+	
 	view=newwin(height,width,0,0);
-	scoretable=newwin(4,15,0,width+1);
+	scoretable=newwin(6,15,0,width+1);
 
 	keypad(view,TRUE);
 	
@@ -457,7 +538,7 @@ int main(){
 		if (Correntlv->next != NULL) mvwaddch(view,height/2,width/2+4,'d');
 
 		updateScreen(view,Correntlv,p1,deltaTime);
-		updateScoretable(scoretable,p1);
+		updateScoretable(scoretable,p1,Correntlv->id_map);
 
 		wrefresh(view);
 		
