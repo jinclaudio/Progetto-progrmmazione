@@ -170,8 +170,9 @@ class player : public Entity{
 
 
 struct Level{
-	int num;
-	int buff;
+	int n_monster;
+	int n_bonus;
+	int n_artefatti
 
 	Entity *enemies[100]; //={{Entity('m','s')}};
 	//Entity score[width];
@@ -453,18 +454,21 @@ void updateMonster(WINDOW *local_win, Entity &monster,float dt){
 	}
 
 }
-
+bool bullet_hit(player &p1,Entity &e){
+	return((p1.bulletX() == e.getpositionx()) && 
+		   (p1.bulletY() == e.getpositiony()) &&
+		   (p1.bulletFlag()) &&
+		   (e.getactive()));
+}
+bool player_hit(player &p1,Entity &e){
+	return( (p1.getpositionx() == e.getpositionx()) && 
+			(p1.getpositiony() == e.getpositiony()) &&
+			e.getactive() );
+}
 void Hitbox(WINDOW *local_win,livello lv, player &p1){
 	for (int i = 0; i <lv->num; i++){
 		//bullet && monster
-
-			//if(((p1.bulletX()+1 == lv->enemies[i]->getnewpositionx())) && (p1.bulletY() == lv->enemies[i]->getnewpositiony())&& p1.bulletFlag()){
-		   	if (
-		   		(p1.bulletX() == lv->enemies[i]->getpositionx()) && 
-		   		(p1.bulletY() == lv->enemies[i]->getpositiony()) &&
-		   		(p1.bulletFlag()) &&
-		   		(lv->enemies[i]->getactive())
-		   		) {
+		   	if (bullet_hit(p1, *(lv->enemies[i]) ) ) {
 			    
 			    p1.updateFlag(false);
 				mvwaddch(local_win,p1.bulletY(),p1.bulletX()-1,' ');
@@ -474,13 +478,14 @@ void Hitbox(WINDOW *local_win,livello lv, player &p1){
 			    clearMonster(local_win,*(lv->enemies[i]));
 			    p1.scored();
 		   }
-	   // player && monsterss
-		   if (((p1.getpositionx() == lv->enemies[i]->getpositionx())) && (p1.getpositiony() == lv->enemies[i]->getpositiony())&&lv->enemies[i]->getactive()){
 
+	   // player && monsterss
+		   if (player_hit(p1,*(lv->enemies[i]) ) ){
 			   lv->enemies[i]->Death();
 			   p1.damaged();
 		   }
 	}
+	for 
 }
 
 void updateScreen(WINDOW *local_win,livello lv, player &p1,float dt){
