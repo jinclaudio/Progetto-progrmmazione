@@ -1,0 +1,3 @@
+/mnt/c/Users/jincl/CLionProjects/progetto12/Build/CMakeFiles/rebuild_cache.dir
+/mnt/c/Users/jincl/CLionProjects/progetto12/Build/CMakeFiles/edit_cache.dir
+/mnt/c/Users/jincl/CLionProjects/progetto12/Build/CMakeFiles/progetto21_22.dir

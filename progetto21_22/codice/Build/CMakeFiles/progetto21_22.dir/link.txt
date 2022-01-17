@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/progetto21_22.dir/main.cpp.o CMakeFiles/progetto21_22.dir/Entity.cpp.o CMakeFiles/progetto21_22.dir/Level.cpp.o CMakeFiles/progetto21_22.dir/Graphics.cpp.o CMakeFiles/progetto21_22.dir/Physics.cpp.o CMakeFiles/progetto21_22.dir/Monster.cpp.o CMakeFiles/progetto21_22.dir/Player.cpp.o  -o progetto21_22  -lcurses /usr/lib/x86_64-linux-gnu/libform.so 
