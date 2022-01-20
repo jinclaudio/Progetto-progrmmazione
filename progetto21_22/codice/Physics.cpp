@@ -338,7 +338,7 @@ void Hitbox(WINDOW *local_win,livello lv, Player &p1,float dt){
     }
     for (int i = 0; i < 2;i++){
 
-        if (Player_hit(p1,*(lv->telep[i]) ) ){
+        if (Player_hit(p1,*(lv->telep[i]) ) && lv->Show_tp ){
 
             switch(mvwinch(local_win,p1.getpositiony(),p1.getpositionx()) ){
                 case 't':{
